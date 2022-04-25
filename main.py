@@ -1,54 +1,82 @@
 from asyncio.windows_events import NULL
 import requests
 from requests_oauthlib import OAuth1
-
+import configparser
+import databaseManipulator
+import dataRequester
+import threading
+import time
 
 from mysql.connector import connect, Error
+
+
+
 cursor = NULL
 
+config = configparser.ConfigParser()
 
+# read the configuration file
+config.read('config.ini')
+
+# load config vars
+# DB
+host = config.get('DB', 'host')
+user = config.get('DB', 'user')
+password = config.get('DB', 'password')
+database = config.get('DB', 'database')
+
+
+#OAUth
+client_key = config.get('OAuth1', 'client_key')
+client_secret = config.get('OAuth1', 'client_secret')
+resource_owner_key = config.get('OAuth1', 'resource_owner_key')
+resource_owner_secret = config.get('OAuth1', 'resource_owner_secret')
 
 
 url = 'https://api.twitter.com/1.1/statuses/home_timeline.json'
-auth = OAuth1(' ', ' ', '85140814- ', ' ')
+auth = OAuth1(client_key, client_secret, resource_owner_key, resource_owner_secret)
 params = {'tweet_mode': 'extended',
 'count': 200}
-r =requests.get(url, params=params,auth=auth)
-indx = 0
 
-insert_tweets_query = """
-INSERT INTO twitter_bubble.tweets
-(text, username, language, timelineUserId, twitterUserId)
-VALUES ( %s, %s, %s, %s, %s )
-"""
-tweetData = []
+#try:
+    #r =requests.get(url, params=params,auth=auth)
+    #r.raise_for_status()
+#except requests.exceptions.HTTPError as err:
+    #raise SystemExit(err)
 
-for tweet in r.json():
-    indx = indx+1
-    userinfo = tweet['user']
-    print('---------   ' + str(indx) + '   ---------')
-    print(userinfo['screen_name'])
-    print (tweet['full_text'])
-    print (tweet['lang'])
-    print (tweet['created_at'])
-    print(userinfo['id'])
+#indx = 0
 
-    tweetData.append((tweet['full_text'], userinfo['screen_name'], tweet['lang'], 7, userinfo['id']))
-    
+#print(str(r.status_code))
 
-try:
-    with connect(
-        host=" ",
-        user=' ',
-        password=' ',
-    ) as connection:
-        print(connection)
+#dataB = databaseManipulator.DatabaseManipulator()
+print('Init DataRequester')
+dataReq = dataRequester.DataRequester()
 
-        with connection.cursor() as cursor:
-            cursor.executemany(insert_tweets_query, tweetData)
-            connection.commit()
+print('starting dataReq!')
+#threadFunc = threading.Thread(target=dataReq.start(), name="str")
+#threadFunc.daemon = True
+#threadFunc.start()
+
+print('dataReq started!')
+
+x = False
+while not x:
+     time.sleep(0.1)
 
 
-except Error as e:
-    print(e)
 
+#tweetData = []
+
+#for tweet in r.json():
+    #indx = indx+1
+    #userinfo = tweet['user']
+    #print('---------   ' + str(indx) + '   ---------')
+    #print(userinfo['screen_name'])
+    #print (tweet['full_text'])
+    #print (tweet['lang'])
+    #print (tweet['created_at'])
+    #print(userinfo['id'])
+
+#    tweetData.append((tweet['full_text'], userinfo['screen_name'], tweet['lang'], 7, userinfo['id'], tweet['id']))
+
+#dataB.insertTweets(tweetData)
