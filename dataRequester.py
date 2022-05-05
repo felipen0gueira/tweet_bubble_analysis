@@ -7,7 +7,7 @@ import databaseManipulator
 
 class DataRequester(object):
 
-    def __init__(self, interval=600):
+    def __init__(self, interval=60):
         self.reqCount = 0
 
         self.interval = interval

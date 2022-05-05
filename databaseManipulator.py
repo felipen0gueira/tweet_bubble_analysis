@@ -30,14 +30,10 @@ class DatabaseManipulator:
         (text, username, language, timelineUserId, twitterUserId, idtweets)
         VALUES ( %s, %s, %s, %s, %s, %s)
         """
-        print('host '+self.__host)
-        print('user '+self.__user)
-        print('password '+self.__password)
-        print('database '+self.__database)
-        print('port '+self.__port)
 
         try:
-            with connect( host = self.__host,
+            with connect(
+                host = self.__host,
                 user = self.__user,
                 password = self.__password,
                 database = self.__database,
