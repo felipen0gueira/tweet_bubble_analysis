@@ -5,11 +5,13 @@ import json
 import configparser
 
 from numpy import vectorize
-from sklearn import metrics, naive_bayes
+from sklearn import metrics, naive_bayes, svm
+from sklearn.metrics import accuracy_score
 
 import nltk
 import string
 import random
+import re
 
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -24,9 +26,37 @@ alldocs = []
 
 _naive_bayes_classifier = NULL
 _vectorizer = NULL
+_stopwords = []
 
 
+def loadStopWords():
+    with open("stop_words_english.txt", encoding="utf8") as fp:
+        while True:
+            
+            line = fp.readline()
+            _stopwords.append(line.strip())
 
+            if "'" in line:
+                _stopwords.append(line.replace("'", "").strip())
+ 
+            if not line:
+                break
+
+        
+        _stopwords.append('huffpost')
+        _stopwords.append('facebook')
+        _stopwords.append('twitter')
+        _stopwords.append('times')
+        _stopwords.append('time')
+        _stopwords.append('huffpoststyle')
+        _stopwords.append('people')
+        _stopwords.append('year')
+        _stopwords.append('years')
+        _stopwords.append('day')
+        _stopwords.append('days')
+        
+        for w in _stopwords:
+            print(w)
 
 
 def getSplits(docs):
@@ -59,14 +89,17 @@ def clean_text(text):
     #text = text.replace('-', " ")
     text = text.translate(str.maketrans('', '', punct))
 
+    pattern = r'[0-9]'
+
+    text = re.sub(pattern, '', text)
+
+
+
     return text
 
 def get_tokens(text):
 
-    stopList =  stopwords.words('english')
-    stopList.append('said')
-    stopList.append('new')
-    stopList.append('one')
+    stopList =  _stopwords #stopwords.words('english')
     
     tokens = word_tokenize(text)
     tokens = [t for t in tokens if not t in stopList]
@@ -99,6 +132,8 @@ def print_freq(myresult):
         tokens[label].extend(doc_tokens)
     
     #xtrain, xtest, ytrain, ytest = getSplits(alldocs)
+
+    print(tokens['crime'])
 
 
 
@@ -149,7 +184,7 @@ def print_freq(myresult):
     for category_label, category_tokens in tokens.items():
         print (category_label)
         fd = FreqDist(category_tokens)
-        print(fd.most_common(50))
+        print(fd.most_common(1000))
 
 
     
@@ -186,8 +221,8 @@ def loadData():
                     print(connection)
 
                     with connection.cursor() as cursor:
-                        #cursor.execute("select * from (SELECT category, headline, short_description, filteredText, CHAR_LENGTH(filteredText) as CharLen, row_number() over (partition by category order by CHAR_LENGTH(filteredText) desc) as numbRow  FROM twitter_bubble.training_dataset) ranked where numbRow <= 3000")
-                        cursor.execute("SELECT category, headline, short_description, ftxt, idtraining_dataset FROM twitter_bubble.training_dataset where ftxt is not null or ftxt not like ''")
+                        cursor.execute("select category, headline, short_description, ftxt, idtraining_dataset from (SELECT category, headline, short_description, ftxt, idtraining_dataset, filteredText, CHAR_LENGTH(filteredText) as CharLen, row_number() over (partition by category order by CHAR_LENGTH(filteredText) desc) as numbRow  FROM twitter_bubble.training_dataset where category in ('entertainment','crime','world news','politics', 'education & college') and ftxt is not null and ftxt not like '') ranked where numbRow <= 1000")
+                        #cursor.execute("SELECT category, headline, short_description, ftxt, idtraining_dataset FROM twitter_bubble.training_dataset where ftxt is not null or ftxt not like ''")
                         #cursor.execute("SELECT category, filteredText FROM twitter_bubble.training_dataset")
                         myresult = cursor.fetchall()
                         #print_freq(myresult)
@@ -226,13 +261,28 @@ def train_classifier(docs):
     evaluate_classifier("Naive Bayes TRAIN", naive_bayes_classifier, vectorizer, xtrain,ytrain)
     evaluate_classifier("Naive Bayes TEST", naive_bayes_classifier, vectorizer, xtest, ytest)
 
-    textVect = ['the new born is so cute', 'new single']
-    predid = naive_bayes_classifier.predict(vectorizer.transform(textVect))
+    #print("Naive Bayes Accuracy Score -> ",accuracy_score(naive_bayes_classifier, ytest)*100)
+
+    #textVect = ['the new born is so cute', 'new single']
+    #predid = naive_bayes_classifier.predict(vectorizer.transform(textVect))
     #I don't work under pressure
     _naive_bayes_classifier = naive_bayes_classifier
     _vectorizer = vectorizer
 
-    classifyTweets(naive_bayes_classifier, vectorizer)
+
+
+    print('Classifier - Algorithm - SVM')
+    print('fit the training dataset on the classifier')
+    SVM = svm.SVC(C=1.0, kernel='linear', degree=3, gamma='auto')
+    SVM.fit(dtm, ytrain)
+    print('predict the labels on validation dataset')
+    xtext_tfidf = vectorizer.transform(xtest)
+    predictions_SVM = SVM.predict(xtext_tfidf)
+    print('Use accuracy_score function to get the accuracy') 
+    print("SVM Accuracy Score -> ",accuracy_score(predictions_SVM, ytest)*100)
+
+
+    #classifyTweets(naive_bayes_classifier, vectorizer)
 
     #for p in predid:
     #    print(p)
@@ -242,6 +292,42 @@ def train_classifier(docs):
     #    predid = naive_bayes_classifier.predict(vectorizer.transform([value]))
     #    print(predid[0])
 
+def updateTweet(dataUpdated):
+    config = configparser.ConfigParser()
+    # read the configuration file
+    config.read('config.ini')
+
+    host = config.get('DB', 'host')
+    user = config.get('DB', 'user')
+    password = config.get('DB', 'password')
+    database = config.get('DB', 'database')
+    port = config.get('DB', 'port')
+
+
+    updateRows = """
+    UPDATE twitter_bubble.tweets SET classification = %s WHERE idtweets = %s
+    """
+
+            
+    try:
+        with connect(
+                    host = host,
+                    user = user,
+                    password = password,
+                    database = database,
+                    port = port
+                ) as connection:
+                    print('---updating---')
+                    print(connection)
+
+                    with connection.cursor() as cursor:
+                        cursor.execute(updateRows, dataUpdated)
+                        connection.commit()
+
+
+    except Error as e:
+            print('---connection status---')
+            print(e)
 
 
 def classifyTweets(naive_bayes_classifier, vectorizer):
@@ -279,14 +365,17 @@ def classifyTweets(naive_bayes_classifier, vectorizer):
                             myresult = cursor.fetchall()
                             #print_freq(myresult)
                             textVct = []
+                            idsVect = []
                             for i in myresult:
                                 textVct.append(i[1])
+                                idsVect.append(i[0])
 
 
                             predid = naive_bayes_classifier.predict(vectorizer.transform(textVct))
                             for p in range(len(textVct)):
-                                print(textVct[p] + ' - ' + predid[p])
+                                print(idsVect[p] + ' - ' + textVct[p] + ' - ' + predid[p])
                                 print('\n\n-----------------------------------------------------------------')
+                                updateTweet((predid[p], idsVect[p]))
 
 
                             return myresult
@@ -301,6 +390,7 @@ def classifyTweets(naive_bayes_classifier, vectorizer):
 
 
 if __name__ == '__main__':
+    loadStopWords()
     dbData = loadData()
     print('Number of rows: ' + str(len(dbData)))
     print_freq(dbData)

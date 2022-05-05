@@ -45,6 +45,7 @@ class DatabaseManipulator:
                 with connection.cursor() as cursor:
                     cursor.executemany(insert_tweets_query, tweets)
                     connection.commit()
+                    print('Tweets inserted : ' + str(cursor.rowcount))
 
 
         except Error as e:
