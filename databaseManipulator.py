@@ -32,8 +32,7 @@ class DatabaseManipulator:
         """
 
         try:
-            with connect(
-                host = self.__host,
+            with connect( host = self.__host,
                 user = self.__user,
                 password = self.__password,
                 database = self.__database,
