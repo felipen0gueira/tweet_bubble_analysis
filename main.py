@@ -1,4 +1,4 @@
-from asyncio.windows_events import NULL
+
 import requests
 from requests_oauthlib import OAuth1
 import configparser
@@ -10,8 +10,6 @@ import time
 from mysql.connector import connect, Error
 
 
-
-cursor = NULL
 
 config = configparser.ConfigParser()
 
