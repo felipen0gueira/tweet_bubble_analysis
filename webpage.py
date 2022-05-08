@@ -99,4 +99,5 @@ def getAccessToken():
     return redirect("/main")
 
 if(__name__=="__main__") :
+    app.secret_key = "MY_KEY_APP"
     app.run(host='0.0.0.0', port=84)
