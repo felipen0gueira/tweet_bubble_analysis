@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, request
 import configparser
 import requests
-from requests_oauthlib import OAuth1
+
 from requests_oauthlib import OAuth1Session
 import databaseManipulator
 
@@ -99,4 +99,4 @@ def getAccessToken():
     return redirect("/main")
 
 if(__name__=="__main__") :
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=84)
