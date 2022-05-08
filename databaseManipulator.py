@@ -53,5 +53,65 @@ class DatabaseManipulator:
             print(e)
 
 
+    def insertUpdateUser(self, user):
+
+        insert_user_query = """
+        INSERT IGNORE INTO user
+        (username, accessToken, tokenSecret, twitterUserId)
+        VALUES ( %s, %s, %s, %s)
+        """
+
+
+        try:
+            with connect(
+                host = self.__host,
+                user = self.__user,
+                password = self.__password,
+                database = self.__database,
+                port = self.__port
+            ) as connection:
+                print('---connection status---')
+                print(connection)
+
+                with connection.cursor() as cursor:
+                    cursor.execute(insert_user_query, user)
+                    connection.commit()
+                    print('Tweets inserted : ' + str(cursor.rowcount))
+
+
+        except Error as e:
+            print('---connection status---')
+            print(e)
+
+    def getUsersList(self):
+
+        select_users = """
+        SELECT * FROM twitter_bubble.user
+        """
+
+
+
+
+        try:
+            with connect(
+                host = self.__host,
+                user = self.__user,
+                password = self.__password,
+                database = self.__database,
+                port = self.__port
+            ) as connection:
+                print('---connection status---')
+                print(connection)
+
+                with connection.cursor() as cursor:
+                    cursor.execute(select_users)
+                    myresult = cursor.fetchall()
+                    return myresult
+
+
+        except Error as e:
+            print('---connection status---')
+            print(e)
+
 
 

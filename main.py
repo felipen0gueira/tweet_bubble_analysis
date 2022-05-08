@@ -27,14 +27,13 @@ database = config.get('DB', 'database')
 #OAUth
 client_key = config.get('OAuth1', 'client_key')
 client_secret = config.get('OAuth1', 'client_secret')
-resource_owner_key = config.get('OAuth1', 'resource_owner_key')
-resource_owner_secret = config.get('OAuth1', 'resource_owner_secret')
 
 
-url = 'https://api.twitter.com/1.1/statuses/home_timeline.json'
-auth = OAuth1(client_key, client_secret, resource_owner_key, resource_owner_secret)
-params = {'tweet_mode': 'extended',
-'count': 200}
+
+#url = 'https://api.twitter.com/1.1/statuses/home_timeline.json'
+#auth = OAuth1(client_key, client_secret, resource_owner_key, resource_owner_secret)
+#params = {'tweet_mode': 'extended',
+#'count': 200}
 
 #try:
     #r =requests.get(url, params=params,auth=auth)
