@@ -12,8 +12,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 client_key = config.get('OAuth1', 'client_key')
 client_secret = config.get('OAuth1', 'client_secret')
-resource_owner_key = config.get('OAuth1', 'resource_owner_key')
-resource_owner_secret = config.get('OAuth1', 'resource_owner_secret')
+
 
 session = {}
 
