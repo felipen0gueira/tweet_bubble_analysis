@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, session,request
 import configparser
 import requests
 
@@ -14,7 +14,7 @@ client_key = config.get('OAuth1', 'client_key')
 client_secret = config.get('OAuth1', 'client_secret')
 
 
-session = {}
+
 
 
 
@@ -29,10 +29,10 @@ def mainPage():
 
 @app.route("/main", methods=['GET'])
 def main():
-    if not session.get('loggedUser'):
+    if not session['loggedUser']:
          return redirect('/')
 
-    data = {'user': '@'+session.get('loggedUser')}
+    data = {'user': '@'+session['loggedUser']}
     return render_template("main.html", data=data)
 
 @app.route("/logout", methods=['GET'])
