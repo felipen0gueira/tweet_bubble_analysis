@@ -221,7 +221,7 @@ def loadData():
                     print(connection)
 
                     with connection.cursor() as cursor:
-                        cursor.execute("select category, headline, short_description, ftxt, idtraining_dataset from (SELECT category, headline, short_description, ftxt, idtraining_dataset, filteredText, CHAR_LENGTH(filteredText) as CharLen, row_number() over (partition by category order by CHAR_LENGTH(filteredText) desc) as numbRow  FROM twitter_bubble.training_dataset where category in ('entertainment','crime','world news','politics', 'education & college') and ftxt is not null and ftxt not like '') ranked where numbRow <= 1000")
+                        cursor.execute("select category, headline, short_description, ftxt, idtraining_dataset from (SELECT category, headline, short_description, ftxt, idtraining_dataset, filteredText, CHAR_LENGTH(filteredText) as CharLen, row_number() over (partition by category order by CHAR_LENGTH(filteredText) desc) as numbRow  FROM twitter_bubble.training_dataset where ftxt is not null and ftxt not like '') ranked where numbRow <= 1000")
                         #cursor.execute("SELECT category, headline, short_description, ftxt, idtraining_dataset FROM twitter_bubble.training_dataset where ftxt is not null or ftxt not like ''")
                         #cursor.execute("SELECT category, filteredText FROM twitter_bubble.training_dataset")
                         myresult = cursor.fetchall()

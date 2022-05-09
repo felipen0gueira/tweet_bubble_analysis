@@ -53,14 +53,7 @@ class DataRequester(object):
                     tweetData = []
                     for tweet in r.json():
                         userinfo = tweet['user']
-                        #indx = indx+1
-                        #userinfo = tweet['user']
-                        #print('---------   ' + str(indx) + '   ---------')
-                        #print(userinfo['screen_name'])
-                        #print (tweet['full_text'])
-                        #print (tweet['lang'])
-                        #print (tweet['created_at'])
-                        #print(userinfo['id'])
+
                         if tweet['lang'] == 'en':
                             tweetData.append((tweet['full_text'], userinfo['screen_name'], tweet['lang'], user[0], userinfo['id'], tweet['id']))
 

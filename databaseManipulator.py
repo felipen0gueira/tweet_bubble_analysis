@@ -56,9 +56,10 @@ class DatabaseManipulator:
     def insertUpdateUser(self, user):
 
         insert_user_query = """
-        INSERT IGNORE INTO user
+        INSERT INTO user
         (username, accessToken, tokenSecret, twitterUserId)
         VALUES ( %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE username=%s, accessToken=%s, tokenSecret=%s
         """
 
 
@@ -74,9 +75,8 @@ class DatabaseManipulator:
                 print(connection)
 
                 with connection.cursor() as cursor:
-                    cursor.execute(insert_user_query, user)
+                    cursor.execute(insert_user_query, (user[0], user[1], user[2], user[3], user[0], user[1], user[2]))
                     connection.commit()
-                    print('Tweets inserted : ' + str(cursor.rowcount))
 
 
         except Error as e:
