@@ -90,8 +90,6 @@ class DatabaseManipulator:
         """
 
 
-
-
         try:
             with connect(
                 host = self.__host,

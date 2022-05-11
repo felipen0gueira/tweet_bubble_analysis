@@ -4,6 +4,7 @@ import configparser
 import sched, time
 import threading
 import databaseManipulator
+import encrypDecrypService
 
 class DataRequester(object):
 
@@ -38,7 +39,8 @@ class DataRequester(object):
 
                 print("Requesting @" + user[1] + "'s Timeline")
 
-                auth = OAuth1(self.__client_key, self.__client_secret,  user[2], user[3])
+                auth = OAuth1(self.__client_key, self.__client_secret,  encrypDecrypService.EncryptDecryptService.decrypt(user[2]), 
+                encrypDecrypService.EncryptDecryptService.decrypt(user[3]))
                 params = {'tweet_mode': 'extended',
                 'count': 200}
 

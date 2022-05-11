@@ -4,6 +4,7 @@ import requests
 
 from requests_oauthlib import OAuth1Session
 import databaseManipulator
+import encrypDecrypService
 
 app = Flask(__name__)
 
@@ -92,7 +93,8 @@ def getAccessToken():
 
     db = databaseManipulator.DatabaseManipulator()
 
-    db.insertUpdateUser((value[3].split('=')[1], value[0].split('=')[1], value[1].split('=')[1], value[2].split('=')[1]))
+    db.insertUpdateUser((value[3].split('=')[1], encrypDecrypService.EncryptDecryptService.encrypt(value[0].split('=')[1]), 
+    encrypDecrypService.EncryptDecryptService.encrypt(value[1].split('=')[1]), value[2].split('=')[1]))
 
     
 

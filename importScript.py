@@ -16,12 +16,19 @@ import re
 
 from sklearn.feature_extraction.text import CountVectorizer
 
+from sklearn import preprocessing
+
 
 
 from mysql.connector import connect, Error
 from nltk.corpus import stopwords
 from nltk import word_tokenize
 from nltk import FreqDist
+
+
+from sklearn.neural_network import MLPClassifier
+
+
 alldocs = []
 
 _naive_bayes_classifier = NULL
@@ -184,7 +191,7 @@ def print_freq(myresult):
     for category_label, category_tokens in tokens.items():
         print (category_label)
         fd = FreqDist(category_tokens)
-        print(fd.most_common(1000))
+        print(fd.most_common(10))
 
 
     
@@ -221,9 +228,9 @@ def loadData():
                     print(connection)
 
                     with connection.cursor() as cursor:
-                        cursor.execute("select category, headline, short_description, ftxt, idtraining_dataset from (SELECT category, headline, short_description, ftxt, idtraining_dataset, filteredText, CHAR_LENGTH(filteredText) as CharLen, row_number() over (partition by category order by CHAR_LENGTH(filteredText) desc) as numbRow  FROM twitter_bubble.training_dataset where ftxt is not null and ftxt not like '') ranked where numbRow <= 1000")
+                        #cursor.execute("select category, headline, short_description, ftxt, idtraining_dataset from (SELECT category, headline, short_description, ftxt, idtraining_dataset, filteredText, CHAR_LENGTH(filteredText) as CharLen, row_number() over (partition by category order by CHAR_LENGTH(filteredText) desc) as numbRow  FROM twitter_bubble.training_dataset_2 where ftxt is not null and ftxt not like '') ranked where numbRow <= 1000")
                         #cursor.execute("SELECT category, headline, short_description, ftxt, idtraining_dataset FROM twitter_bubble.training_dataset where ftxt is not null or ftxt not like ''")
-                        #cursor.execute("SELECT category, filteredText FROM twitter_bubble.training_dataset")
+                        cursor.execute("SELECT category, headline, short_description, ftxt, idtraining_dataset FROM twitter_bubble.training_dataset_2 where ftxt is not null and ftxt not like ''")
                         myresult = cursor.fetchall()
                         #print_freq(myresult)
                         return myresult
@@ -238,17 +245,35 @@ def loadData():
 def evaluate_classifier(title, classifier, vectorizer, xtest, ytest):
     xtext_tfidf = vectorizer.transform(xtest)
     ypred = classifier.predict(xtext_tfidf)
-    
+    print('----micro----')
     precision = metrics.precision_score(ytest, ypred, average='micro')
     recall = metrics.recall_score(ytest, ypred, average='micro')
     f1 = metrics.f1_score(ytest, ypred, average='micro')
-
     print("%s\t%f\t%f\t%f\n" % (title, precision,recall, f1))
+
+    print('----macro----')
+    precision = metrics.precision_score(ytest, ypred, average='macro')
+    recall = metrics.recall_score(ytest, ypred, average='macro')
+    f1 = metrics.f1_score(ytest, ypred, average='macro')
+    print("%s\t%f\t%f\t%f\n" % (title, precision,recall, f1))
+    print('----weighted---')
+    precision = metrics.precision_score(ytest, ypred, average='weighted')
+    recall = metrics.recall_score(ytest, ypred, average='weighted')
+    f1 = metrics.f1_score(ytest, ypred, average='weighted')
+    print("%s\t%f\t%f\t%f\n" % (title, precision,recall, f1))
+
+
 
 
 
 def train_classifier(docs):
     xtrain, xtest, ytrain, ytest = getSplits(alldocs)
+    print('xtrain ' + str(len(xtrain)))
+    print('xtest ' + str(len(xtest)))
+    print('ytrain ' + str(len(ytrain)))
+    print('ytest ' + str(len(ytest)))
+
+ 
 
     vectorizer = CountVectorizer(stop_words='english',
     ngram_range=(1,3),
@@ -260,6 +285,11 @@ def train_classifier(docs):
 
     evaluate_classifier("Naive Bayes TRAIN", naive_bayes_classifier, vectorizer, xtrain,ytrain)
     evaluate_classifier("Naive Bayes TEST", naive_bayes_classifier, vectorizer, xtest, ytest)
+
+    xtext_tfidf = vectorizer.transform(xtest)
+    ypred = naive_bayes_classifier.predict(xtext_tfidf)
+
+    print("Naive Bayes Score -> ",accuracy_score(ypred, ytest)*100)
 
     #print("Naive Bayes Accuracy Score -> ",accuracy_score(naive_bayes_classifier, ytest)*100)
 
@@ -274,12 +304,36 @@ def train_classifier(docs):
     print('Classifier - Algorithm - SVM')
     print('fit the training dataset on the classifier')
     SVM = svm.SVC(C=1.0, kernel='linear', degree=3, gamma='auto')
-    SVM.fit(dtm, ytrain)
+    svmclasssifier=SVM.fit(dtm, ytrain)
     print('predict the labels on validation dataset')
     xtext_tfidf = vectorizer.transform(xtest)
     predictions_SVM = SVM.predict(xtext_tfidf)
     print('Use accuracy_score function to get the accuracy') 
     print("SVM Accuracy Score -> ",accuracy_score(predictions_SVM, ytest)*100)
+
+
+    print('----micro----')
+    precision = metrics.precision_score(ytest, predictions_SVM, average='micro')
+    recall = metrics.recall_score(ytest, predictions_SVM, average='micro')
+    f1 = metrics.f1_score(ytest, predictions_SVM, average='micro')
+    print("%s\t%f\t%f\t%f\n" % ('SVM', precision,recall, f1))
+    
+    print('----macro----')
+    precision = metrics.precision_score(ytest, predictions_SVM, average='macro')
+    recall = metrics.recall_score(ytest, predictions_SVM, average='macro')
+    f1 = metrics.f1_score(ytest, predictions_SVM, average='macro')
+    print("%s\t%f\t%f\t%f\n" % ('SVM', precision,recall, f1))
+    print('----weighted---')
+    precision = metrics.precision_score(ytest, predictions_SVM, average='weighted')
+    recall = metrics.recall_score(ytest, predictions_SVM, average='weighted')
+    f1 = metrics.f1_score(ytest, predictions_SVM, average='weighted')
+    print("%s\t%f\t%f\t%f\n" % ('SVM', precision,recall, f1))
+
+
+
+
+
+
 
 
     #classifyTweets(naive_bayes_classifier, vectorizer)
