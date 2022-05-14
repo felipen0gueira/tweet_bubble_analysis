@@ -112,4 +112,141 @@ class DatabaseManipulator:
             print(e)
 
 
+    def getCategoriesClassification(self, userId):
+
+        select_users = """
+        select classification, count(*) from twitter_bubble.tweets where timelineUserId =%s and classification is not null group by classification;
+        """
+
+
+        try:
+            with connect(
+                host = self.__host,
+                user = self.__user,
+                password = self.__password,
+                database = self.__database,
+                port = self.__port
+            ) as connection:
+                print('---connection status---')
+                print(connection)
+
+                with connection.cursor() as cursor:
+                    cursor.execute(select_users, [userId])
+                    result = cursor.fetchall()
+                    print('Results: ' + str(cursor.rowcount))
+                    
+                    return result
+
+
+        except Error as e:
+            print('---connection status---')
+            print(e)
+
+
+
+
+    def getUserTweetPerClassification(self, userId):
+
+        select_users = """
+        select username, classification,COUNT(username) from twitter_bubble.tweets where timelineUserId =%s and classification is not null  group by username, classification 
+        """
+
+
+        try:
+            with connect(
+                host = self.__host,
+                user = self.__user,
+                password = self.__password,
+                database = self.__database,
+                port = self.__port
+            ) as connection:
+                print('---connection status---')
+                print(connection)
+
+                with connection.cursor() as cursor:
+                    cursor.execute(select_users, [userId])
+                    result = cursor.fetchall()
+                    print('Results: ' + str(cursor.rowcount))
+                    
+                    return result
+
+
+        except Error as e:
+            print('---connection status---')
+            print(e)
+
+
+
+    def getUserByTwitterId(self, twitterId):
+
+        select_users = """
+        select * from twitter_bubble.user where twitterUserId =%s ;
+        """
+
+
+        try:
+            with connect(
+                host = self.__host,
+                user = self.__user,
+                password = self.__password,
+                database = self.__database,
+                port = self.__port
+            ) as connection:
+                print('---connection status---')
+                print(connection)
+
+                with connection.cursor() as cursor:
+                    cursor.execute(select_users, [twitterId])
+                    result = cursor.fetchall()
+                    print('Results: ' + str(cursor.rowcount))
+                    return result
+
+
+        except Error as e:
+            print('---connection status---')
+            print(e)
+
+
+    def getTweets(self, apUserID, category, userName=None):
+
+        if(userName == None):
+            select_tweets = """
+            SELECT username, text, classification, sentiment FROM twitter_bubble.tweets where timelineUserId =%s and classification =%s
+            """
+        else:
+            select_tweets = """
+            SELECT username, text, classification, sentiment FROM twitter_bubble.tweets where timelineUserId =%s and classification =%s and username=%s
+            """
+        try:
+            with connect(
+                host = self.__host,
+                user = self.__user,
+                password = self.__password,
+                database = self.__database,
+                port = self.__port
+            ) as connection:
+                print('---connection status---')
+                print(connection)
+
+                whereData = [apUserID, category, userName] if userName != None else [apUserID, category]
+
+                with connection.cursor() as cursor:
+                    cursor.execute(select_tweets, whereData)
+                                        
+                    result = cursor.fetchall()
+                    print('Results: ' + str(cursor.rowcount))
+
+                    return result
+
+
+        except Error as e:
+            print('---connection status---')
+
+            print(e)
+
+
+
+
+
+
 

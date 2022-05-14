@@ -4,3 +4,4 @@ mysql
 mysql-connector-python
 flask
 cryptography
+pandas
