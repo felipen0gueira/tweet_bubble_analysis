@@ -6,6 +6,8 @@ import threading
 import databaseManipulator
 import encrypDecrypService
 
+
+
 class DataRequester(object):
 
     def __init__(self, interval=600):
@@ -25,6 +27,8 @@ class DataRequester(object):
         thread = threading.Thread(target=self.requestTweets, args=())
         thread.daemon = True
         thread.start()
+
+
     
     def requestTweets(self):
         while True:
@@ -57,6 +61,7 @@ class DataRequester(object):
                         userinfo = tweet['user']
 
                         if tweet['lang'] == 'en':
+                            
                             tweetData.append((tweet['full_text'], userinfo['screen_name'], tweet['lang'], user[0], userinfo['id'], tweet['id']))
 
                     self._dataB.insertTweets(tweetData)
@@ -68,6 +73,8 @@ class DataRequester(object):
                     #sc.enter(60, 1, self.requestTweets, (sc,))
                 except requests.exceptions.HTTPError as err:
                     raise SystemExit(err)
+
+            self._dataB.updateTextClassificationAndSentiment()
 
             time.sleep(self.interval)
 

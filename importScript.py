@@ -153,34 +153,18 @@ def print_freq(myresult):
         label = r[0]
         text = r[1] + " " + r[2] + " " + r[3]
         text = text.lower()
-        #alldocs.append((label, text))
+
         idText = r[3]
         text = clean_text(text)
         text = get_tokens(text)
-        #text = executeStemmer(text)
-        #doc_tokens = word_tokenize(text)
+
         doc_tokens = text
         txtConcac = ' '.join(doc_tokens)
         alldocs.append((label, txtConcac))
-        #dataUpdated.append((txtConcac, idText))
-        #print('ID: ' + str(idText))
-        #print(' '.join(map(str, doc_tokens))) 
-        #print(doc_tokens)
+
  
         tokens[label].extend(doc_tokens)
     
-    #xtrain, xtest, ytrain, ytest = getSplits(alldocs)
-
-
-
-
-
-
-    
-
-    
-    config = configparser.ConfigParser()
-  
     
 
     for category_label, category_tokens in tokens.items():
@@ -405,7 +389,7 @@ def updateTweet(dataUpdated):
 
 
     updateRows = """
-    UPDATE twitter_bubble.tweets SET classification = %s WHERE idtweets like %s
+    UPDATE twitter_bubble.tweets SET classification = %s, sentiment = %s WHERE idtweets like %s
     """
 
             
@@ -433,7 +417,7 @@ def updateTweet(dataUpdated):
             print(e)
 
 
-def classifyTweets(naive_bayes_classifier, vectorizer):
+def classifyTweets(naive_bayes_classifier, vectorizer, sentimentClass, sentVect):
 
         config = configparser.ConfigParser()
         # read the configuration file
@@ -462,7 +446,7 @@ def classifyTweets(naive_bayes_classifier, vectorizer):
                         print(connection)
 
                         with connection.cursor() as cursor:
-                            cursor.execute("select * from  twitter_bubble.tweets WHERE classification is null")
+                            cursor.execute("select * from  twitter_bubble.tweets")
                             #cursor.execute("SELECT category, headline, short_description, idtraining_dataset FROM twitter_bubble.training_dataset ")
                             #cursor.execute("SELECT category, filteredText FROM twitter_bubble.training_dataset")
                             myresult = cursor.fetchall()
@@ -475,10 +459,11 @@ def classifyTweets(naive_bayes_classifier, vectorizer):
 
                             updatedTweets = []
                             predid = naive_bayes_classifier.predict(vectorizer.transform(textVct))
+                            sentimentPredicted = sentimentClass.predict(sentVect.transform(textVct))
                             for p in range(len(textVct)):
-                                print(idsVect[p] + ' - ' + textVct[p] + ' - ' + predid[p])
+                                print(idsVect[p] + ' - ' + textVct[p] + ' - ' + predid[p] +' - Sentiment ' + str(sentimentPredicted[p]))
                                 print('\n\n-----------------------------------------------------------------')
-                                updatedTweets.append([predid[p], idsVect[p]])
+                                updatedTweets.append([predid[p], sentimentPredicted[p].item(), idsVect[p]])
 
 
                             updateTweet(updatedTweets)
@@ -601,15 +586,28 @@ if __name__ == '__main__':
     #dbData = loadData()
     #print('Number of rows: ' + str(len(dbData)))
     #print_freq(dbData)
-    #train_classifier(alldocs)
+    train_classifier(alldocs)
 
-    objectRep = open("naive_bayes_classifier.pkl", "rb")
-    calssifier = pickle.load(objectRep)
+    naiveB = open("naive_bayes_classifier.pkl", "rb")
+    classifier = pickle.load(naiveB)
 
-    vectorizerFile = open("vectorizer.pkl", "rb")
-    vectorizer = pickle.load(vectorizerFile)
+    vectorizerNBFile = open("vectorizer.pkl", "rb")
+    nbVectorizer = pickle.load(vectorizerNBFile)
 
-    classifyTweets(calssifier, vectorizer)
+    #Sent_naive_bayes_classifier.pkl
+    #Sent_vectorizer.pkl
+
+    naiveS = open("Sent_naive_bayes_classifier.pkl", "rb")
+    classifierNS = pickle.load(naiveS)
+
+    vecNBFile = open("Sent_vectorizer.pkl", "rb")
+    SentVectorizer = pickle.load(vecNBFile)
+
+    #sentimentPredicted = classifierNS.predict(SentVectorizer.transform([]))
+
+
+
+    classifyTweets(classifier, nbVectorizer, classifierNS, SentVectorizer)
 
     #train_classifier(alldocs, file_naive_bayes = 'Sent_naive_bayes_classifier.pkl', file_vectorizer = 'Sent_vectorizer.pkl')
     #train_classifierSVM(alldocs)

@@ -859,13 +859,4 @@ world
 youd
 youre
 huffpost
-facebook
-twitter
-times
-time
 huffpoststyle
-people
-year
-years
-day
-days

@@ -103,12 +103,17 @@ def loadTweets():
 
         data["ViewLabel"] = titleLabel
 
+        sentimentLabel = {
+            0 : "Negative",
+            4: "Positive"
+        }
+
         for row in loadedData:
             tweet={
                 'userName':'@'+row[0],
                 'text':row[1],
                 'category': row[2],
-                'sentiment': row[3]
+                'sentiment': sentimentLabel[row[3]]
             }
             data["tweetsList"].append(tweet)
             
